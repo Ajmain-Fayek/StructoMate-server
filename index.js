@@ -13,12 +13,31 @@ const app = express();
 app.use(favicon(path.join(__dirname, "public", "favicon.webp")));
 app.use(
     cors({
+        origin: "*",
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
         credentials: true,
     })
 );
 app.use(cookieParser());
 app.use(express.json());
+
+// ---------------------------------------------
+// JWT Middleware
+// ---------------------------------------------
+const verifyJWT = (req, res, next) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return res.status(403).send("A token is required for authentication");
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+    } catch (err) {
+        return res.status(401).send("Invalid Token");
+    }
+    return next();
+};
 
 const uri = process.env.URI;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -42,6 +61,36 @@ async function run() {
         const agreementsCollection = db.collection("agreements");
         const announcementsCollection = db.collection("announcements");
 
+        // ---------------------------------------------
+        // JWT Related APIs
+        // ---------------------------------------------
+        app.post("/api/login", async (req, res) => {
+            // console.log("client request for login: ", req.body);
+            const { email } = req.body;
+            const user = await usersCollection.findOne({ email });
+
+            if (!user) {
+                return res.status(401).send("Invalid username or email");
+            }
+
+            const token = jwt.sign(
+                { userId: user._id, email: user.email },
+                process.env.JWT_SECRET,
+                {
+                    expiresIn: "3h",
+                }
+            );
+
+            res.status(200).json({ message: "Login successful", token });
+        });
+
+        app.post("/api/logout", (req, res) => {
+            res.status(200).json({ message: "Logout successful" });
+        });
+
+        // ---------------------------------------------
+        // Apartments Related APIs
+        // ---------------------------------------------
         app.get("/api/apartments", async (req, res) => {
             const result = await apartmentsCollection.find({}).toArray();
 
@@ -51,6 +100,31 @@ async function run() {
                     .send({ status: 404, message: "Not Found" });
             }
             res.status(200).send({ status: 200, result });
+        });
+
+        // ---------------------------------------------
+        // User Related APIs
+        // ---------------------------------------------
+        app.post("/api/users/:email", verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const result = await usersCollection.findOne(
+                { email },
+                {
+                    projection: {
+                        displayName: 1,
+                        email: 1,
+                        photoURL: 1,
+                        role: 1,
+                    },
+                }
+            );
+            res.status(200).json(result);
+        });
+        app.post("/api/users", async (req, res) => {
+            const newUser = req.body;
+            newUser["role"] = "user";
+            const result = await usersCollection.insertOne(newUser);
+            res.status(201).json(result);
         });
     } finally {
         // Ensures that the client will close when you finish/error
