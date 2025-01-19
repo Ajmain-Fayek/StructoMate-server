@@ -102,6 +102,22 @@ async function run() {
             res.status(200).send({ status: 200, result });
         });
 
+        app.get("/api/apartments/:id", async (req, res) => {
+            // console.log("client hitting");
+            const id = req.params.id;
+            if (!ObjectId.isValid(id)) {
+                return res.status(400).send({ status: 400, message: "Invalid ID" });
+            }
+            const _id = { _id: new ObjectId(id) };
+            const result = await apartmentsCollection.findOne(_id);
+            if (!result) {
+                return res
+                    .status(404)
+                    .send({ status: 404, message: "Not Found" });
+            }
+            res.status(200).send({ status: 200, result });
+        });
+
         // ---------------------------------------------
         // User Related APIs
         // ---------------------------------------------
