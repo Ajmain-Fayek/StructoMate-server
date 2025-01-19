@@ -105,6 +105,14 @@ async function run() {
         // ---------------------------------------------
         // User Related APIs
         // ---------------------------------------------
+        app.get("/api/users/exists/:email", async (req, res) => {
+            const email = req.params.email;
+            const result = await usersCollection.findOne({ email });
+            if (result === null) {
+                return res.status(400).send({ status: false });
+            }
+            res.status(200).send({ status: true });
+        });
         app.post("/api/users/:email", verifyJWT, async (req, res) => {
             const email = req.params.email;
             const result = await usersCollection.findOne(
