@@ -89,29 +89,56 @@ async function run() {
         });
 
         // ---------------------------------------------
+        // Admin Data Related APIs
+        // ---------------------------------------------
+        app.get("/api/admin", async (req, res) => {
+            const members = await usersCollection
+                .find({ role: "member" })
+                .toArray();
+            const users = await usersCollection
+                .find({ role: "user" })
+                .toArray();
+            const occuRooms = await agreementsCollection
+                .find({ status: "active" })
+                .toArray();
+            const availableRooms = (
+                ((10 - parseInt(occuRooms.length)) / 10) *
+                100
+            ).toFixed(2);
+            const occupiedRooms = (
+                (parseInt(occuRooms.length) / 10) *
+                100
+            ).toFixed(2);
+            const adminData = {
+                members: members.length,
+                users: users.length,
+                occupiedRooms,
+                availableRooms,
+                totalRooms: 10,
+            };
+            res.status(200).send(adminData);
+        });
+
+        // ---------------------------------------------
         // Agreements Related APIs
         // ---------------------------------------------
-        app.post(
-            "/api/users/agreements",
-            verifyJWT,
-            async (req, res) => {
-                const { tenantEmail } = req.body;
-                const result = await agreementsCollection
-                    .find({ tenantEmail })
-                    .toArray();
-                if (result.length >= 1) {
-                    return res.status(200).send({
-                        status: 200,
-                        agreementFound: result.length,
-                        result,
-                    });
-                }
-                res.status(400).send({
-                    status: 400,
-                    message: "No agreement Found",
+        app.post("/api/users/agreements", verifyJWT, async (req, res) => {
+            const { tenantEmail } = req.body;
+            const result = await agreementsCollection
+                .find({ tenantEmail })
+                .toArray();
+            if (result.length >= 1) {
+                return res.status(200).send({
+                    status: 200,
+                    agreementFound: result.length,
+                    result,
                 });
             }
-        );
+            res.status(400).send({
+                status: 400,
+                message: "No agreement Found",
+            });
+        });
         app.post("/api/agreements", verifyJWT, async (req, res) => {
             const { newAgreement } = req.body;
             newAgreement["status"] = "pending";
