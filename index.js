@@ -89,6 +89,37 @@ async function run() {
         });
 
         // ---------------------------------------------
+        // Agreements Related APIs
+        // ---------------------------------------------
+        app.post("/api/agreements", verifyJWT, async (req, res) => {
+            const { newAgreement } = req.body;
+            const { tenantEmail, apartmentDetails } = newAgreement;
+            const isExist = await agreementsCollection.findOne({
+                tenantEmail,
+                "apartmentDetails._id": apartmentDetails?._id,
+                "apartmentDetails.apartmentNo": apartmentDetails?.apartmentNo,
+            });
+
+            if (isExist === null) {
+                try {
+                    const result = await agreementsCollection.insertOne(
+                        newAgreement
+                    );
+                    res.status(201).send(result);
+                } catch (error) {
+                    res.status(500).send({
+                        message: "Failed to create agreement",
+                        error,
+                    });
+                }
+            } else {
+                return res
+                    .status(401)
+                    .send({ status: 401, message: "Already signed" });
+            }
+        });
+
+        // ---------------------------------------------
         // Apartments Related APIs
         // ---------------------------------------------
         app.get("/api/apartments", async (req, res) => {
@@ -106,7 +137,9 @@ async function run() {
             // console.log("client hitting");
             const id = req.params.id;
             if (!ObjectId.isValid(id)) {
-                return res.status(400).send({ status: 400, message: "Invalid ID" });
+                return res
+                    .status(400)
+                    .send({ status: 400, message: "Invalid ID" });
             }
             const _id = { _id: new ObjectId(id) };
             const result = await apartmentsCollection.findOne(_id);
