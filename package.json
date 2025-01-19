@@ -12,7 +12,9 @@
   "version": "1.0.0",
   "description": "BMS web application",
   "main": "index.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.10.7"
+  },
   "scripts": {
     "test": "node index.js"
   },

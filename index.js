@@ -93,6 +93,7 @@ async function run() {
         // ---------------------------------------------
         app.post("/api/agreements", verifyJWT, async (req, res) => {
             const { newAgreement } = req.body;
+            newAgreement["status"] = "pending";
             const { tenantEmail, apartmentDetails } = newAgreement;
             const isExist = await agreementsCollection.findOne({
                 tenantEmail,
