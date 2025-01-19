@@ -126,6 +126,20 @@ async function run() {
             res.status(200).send(result);
         });
 
+        app.post("/api/change/role", verifyJWT, async (req, res) => {
+            const { id } = req.body;
+            if (!ObjectId.isValid(id)) {
+                return res
+                    .status(400)
+                    .send({ status: 400, message: "Invalid ID" });
+            }
+            const query = { _id: new ObjectId(id) };
+            const data = { $set: { role: "user" } };
+            const result = await usersCollection.updateOne(query, data);
+
+            res.status(200).send(result);
+        });
+
         // ---------------------------------------------
         // Agreements Related APIs
         // ---------------------------------------------
