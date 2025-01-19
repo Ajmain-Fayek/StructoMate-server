@@ -91,9 +91,31 @@ async function run() {
         // ---------------------------------------------
         // Agreements Related APIs
         // ---------------------------------------------
+        app.post(
+            "/api/users/agreements",
+            verifyJWT,
+            async (req, res) => {
+                const { tenantEmail } = req.body;
+                const result = await agreementsCollection
+                    .find({ tenantEmail })
+                    .toArray();
+                if (result.length >= 1) {
+                    return res.status(200).send({
+                        status: 200,
+                        agreementFound: result.length,
+                        result,
+                    });
+                }
+                res.status(400).send({
+                    status: 400,
+                    message: "No agreement Found",
+                });
+            }
+        );
         app.post("/api/agreements", verifyJWT, async (req, res) => {
             const { newAgreement } = req.body;
             newAgreement["status"] = "pending";
+            newAgreement["type"] = "user";
             const { tenantEmail, apartmentDetails } = newAgreement;
             const isExist = await agreementsCollection.findOne({
                 tenantEmail,
@@ -173,6 +195,7 @@ async function run() {
                         email: 1,
                         photoURL: 1,
                         role: 1,
+                        _id: 1,
                     },
                 }
             );
