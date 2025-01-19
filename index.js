@@ -91,7 +91,7 @@ async function run() {
         // ---------------------------------------------
         // Admin Data Related APIs
         // ---------------------------------------------
-        app.get("/api/admin", async (req, res) => {
+        app.post("/api/admin", verifyJWT, async (req, res) => {
             const members = await usersCollection
                 .find({ role: "member" })
                 .toArray();
@@ -117,6 +117,13 @@ async function run() {
                 totalRooms: 10,
             };
             res.status(200).send(adminData);
+        });
+
+        app.post("/api/manageMembers", verifyJWT, async (req, res) => {
+            const result = await usersCollection
+                .find({ role: "member" })
+                .toArray();
+            res.status(200).send(result);
         });
 
         // ---------------------------------------------
