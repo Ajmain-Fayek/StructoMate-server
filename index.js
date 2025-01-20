@@ -250,6 +250,109 @@ async function run() {
                 message: "No agreement Found",
             });
         });
+        app.post("/api/pending/agreements", verifyJWT, async (req, res) => {
+            try {
+                const results = await agreementsCollection
+                    .find({ status: "pending" })
+                    .sort({ agreementSigningDate: -1 })
+                    .toArray();
+
+                res.status(200).send(results);
+            } catch (error) {
+                res.status(500).send({ message: "Internal Server Error" });
+            }
+        });
+        app.post("/api/accept/agreements", verifyJWT, async (req, res) => {
+            const { tenant_id, agreement_id, agreementCheckedDate } = req.body;
+
+            // Validate IDs
+            if (
+                !ObjectId.isValid(tenant_id) ||
+                !ObjectId.isValid(agreement_id)
+            ) {
+                return res
+                    .status(400)
+                    .send({ status: 400, message: "Invalid ID" });
+            }
+
+            const tenantQuery = { _id: new ObjectId(tenant_id) };
+            const tenantUpdate = { $set: { role: "member" } };
+
+            const agreementQuery = { _id: new ObjectId(agreement_id) };
+            const agreementUpdate = {
+                $set: {
+                    status: "checked",
+                    agreementCheckedDate: agreementCheckedDate,
+                    type: "member",
+                },
+            };
+
+            try {
+                // Update tenant role
+                const tenantResult = await usersCollection.updateOne(
+                    tenantQuery,
+                    tenantUpdate
+                );
+
+                // Update agreement status and set agreementChecked date
+                const agreementResult = await agreementsCollection.updateOne(
+                    agreementQuery,
+                    agreementUpdate
+                );
+
+                // Send a combined response
+                return res.status(200).send({
+                    status: 200,
+                    message: "Successfully updated",
+                    tenantUpdateResult: tenantResult,
+                    agreementUpdateResult: agreementResult,
+                });
+            } catch (error) {
+                console.error("Error updating documents:", error);
+                return res
+                    .status(500)
+                    .send({ message: "Internal Server Error" });
+            }
+        });
+        app.post("/api/reject/agreements", verifyJWT, async (req, res) => {
+            const { agreement_id, agreementCheckedDate } = req.body;
+
+            // Validate IDs
+            if (!ObjectId.isValid(agreement_id)) {
+                return res
+                    .status(400)
+                    .send({ status: 400, message: "Invalid ID" });
+            }
+
+            const agreementQuery = { _id: new ObjectId(agreement_id) };
+            const agreementUpdate = {
+                $set: {
+                    status: "checked",
+                    agreementCheckedDate: agreementCheckedDate,
+                },
+            };
+
+            try {
+                // Update agreement status and set agreementChecked date
+                const agreementResult = await agreementsCollection.updateOne(
+                    agreementQuery,
+                    agreementUpdate
+                );
+
+                // Send a combined response
+                return res.status(200).send({
+                    status: 200,
+                    message: "Successfully updated",
+                    agreementUpdateResult: agreementResult,
+                });
+            } catch (error) {
+                console.error("Error updating documents:", error);
+                return res
+                    .status(500)
+                    .send({ message: "Internal Server Error" });
+            }
+        });
+
         app.post("/api/agreements", verifyJWT, async (req, res) => {
             const { newAgreement } = req.body;
             newAgreement["status"] = "pending";
