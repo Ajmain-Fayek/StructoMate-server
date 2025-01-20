@@ -140,6 +140,34 @@ async function run() {
             res.status(200).send(result);
         });
 
+        // ---------------------------------------------
+        // Announcement Related APIs
+        // ---------------------------------------------
+        app.post("/api/get/userAnnouncement", verifyJWT, async (req, res) => {
+            try {
+                const results = await announcementsCollection
+                    .find({ $or: [{ type: "user" }, { type: "all" }] })
+                    .sort({ date: -1 })
+                    .toArray();
+
+                res.status(200).send(results);
+            } catch (error) {
+                res.status(500).send({ message: "Internal Server Error" });
+            }
+        });
+        app.post("/api/get/memberAnnouncement", verifyJWT, async (req, res) => {
+            try {
+                const results = await announcementsCollection
+                    .find({ $or: [{ type: "member" }, { type: "all" }] })
+                    .sort({ date: -1 })
+                    .toArray();
+
+                res.status(200).send(results);
+            } catch (error) {
+                res.status(500).send({ message: "Internal Server Error" });
+            }
+        });
+
         app.post("/api/makeAnnouncement", verifyJWT, async (req, res) => {
             const { newAnnouncement } = req.body;
             try {
@@ -149,7 +177,7 @@ async function run() {
                 res.status(201).send(result);
             } catch (error) {
                 res.status(500).send({
-                    message: "Failed to create announcement",
+                    message: "Internal Server Error",
                     error,
                 });
             }
