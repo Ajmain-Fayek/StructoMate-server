@@ -141,6 +141,53 @@ async function run() {
         });
 
         // ---------------------------------------------
+        // Coupons Related APIs
+        // ---------------------------------------------
+        app.post("/api/get/coupons", verifyJWT, async (req, res) => {
+            try {
+                const result = await couponsCollection
+                    .find({})
+                    .sort({ validity: -1 })
+                    .toArray();
+                res.status(200).send(result);
+            } catch (error) {
+                res.status(500).send({
+                    message: "internal Server Error",
+                    error,
+                });
+            }
+        });
+        app.post("/api/create/coupons", verifyJWT, async (req, res) => {
+            const { newCoupon } = req.body;
+            try {
+                const result = await couponsCollection.insertOne(newCoupon);
+                res.status(201).send(result);
+            } catch (error) {
+                res.status(500).send({
+                    message: "internal Server Error",
+                    error,
+                });
+            }
+        });
+        app.post("/api/delete/coupons", verifyJWT, async (req, res) => {
+            const { id } = req.body;
+            if (!ObjectId.isValid(id)) {
+                return res
+                    .status(400)
+                    .send({ status: 400, message: "Invalid ID" });
+            }
+            const query = { _id: new ObjectId(id) };
+            try {
+                const result = await couponsCollection.deleteOne(query);
+                res.status(200).send(result);
+            } catch (error) {
+                res.status(500).send({
+                    message: "internal Server Error",
+                    error,
+                });
+            }
+        });
+        // ---------------------------------------------
         // Announcement Related APIs
         // ---------------------------------------------
         app.post("/api/get/userAnnouncement", verifyJWT, async (req, res) => {
