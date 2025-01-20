@@ -140,6 +140,21 @@ async function run() {
             res.status(200).send(result);
         });
 
+        app.post("/api/makeAnnouncement", verifyJWT, async (req, res) => {
+            const { newAnnouncement } = req.body;
+            try {
+                const result = await announcementsCollection.insertOne(
+                    newAnnouncement
+                );
+                res.status(201).send(result);
+            } catch (error) {
+                res.status(500).send({
+                    message: "Failed to create announcement",
+                    error,
+                });
+            }
+        });
+
         // ---------------------------------------------
         // Agreements Related APIs
         // ---------------------------------------------
@@ -205,7 +220,6 @@ async function run() {
         });
 
         app.get("/api/apartments/:id", async (req, res) => {
-            // console.log("client hitting");
             const id = req.params.id;
             if (!ObjectId.isValid(id)) {
                 return res
@@ -268,4 +282,5 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
     console.log("StructoMate server running at: ", port);
 });
+
 run().catch(console.dir);
