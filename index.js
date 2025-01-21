@@ -91,6 +91,8 @@ async function run() {
         // ---------------------------------------------
         // Admin Data Related APIs
         // ---------------------------------------------
+
+        // Admin Dashboard (profile) Data
         app.post("/api/admin", verifyJWT, async (req, res) => {
             const members = await usersCollection
                 .find({ role: "member" })
@@ -119,6 +121,7 @@ async function run() {
             res.status(200).send(adminData);
         });
 
+        // Get all Members (Admin)
         app.post("/api/manageMembers", verifyJWT, async (req, res) => {
             const result = await usersCollection
                 .find({ role: "member" })
@@ -126,6 +129,7 @@ async function run() {
             res.status(200).send(result);
         });
 
+        // Manage Members (change role: <member to user>)
         app.post("/api/change/role", verifyJWT, async (req, res) => {
             const { id } = req.body;
             if (!ObjectId.isValid(id)) {
@@ -143,6 +147,8 @@ async function run() {
         // ---------------------------------------------
         // Coupons Related APIs
         // ---------------------------------------------
+
+        //  Get All Coupons
         app.post("/api/get/coupons", verifyJWT, async (req, res) => {
             try {
                 const result = await couponsCollection
@@ -157,6 +163,8 @@ async function run() {
                 });
             }
         });
+
+        // Create a new Coupon
         app.post("/api/create/coupons", verifyJWT, async (req, res) => {
             const { newCoupon } = req.body;
             try {
@@ -169,6 +177,8 @@ async function run() {
                 });
             }
         });
+
+        // Delete a Coupon
         app.post("/api/delete/coupons", verifyJWT, async (req, res) => {
             const { id } = req.body;
             if (!ObjectId.isValid(id)) {
@@ -190,6 +200,8 @@ async function run() {
         // ---------------------------------------------
         // Announcement Related APIs
         // ---------------------------------------------
+
+        // Get User Announcements (user and all)
         app.post("/api/get/userAnnouncement", verifyJWT, async (req, res) => {
             try {
                 const results = await announcementsCollection
@@ -202,6 +214,8 @@ async function run() {
                 res.status(500).send({ message: "Internal Server Error" });
             }
         });
+
+        // Get Member Announcement (member and all)
         app.post("/api/get/memberAnnouncement", verifyJWT, async (req, res) => {
             try {
                 const results = await announcementsCollection
@@ -215,6 +229,7 @@ async function run() {
             }
         });
 
+        // Create a new Announcement (For Admin)
         app.post("/api/makeAnnouncement", verifyJWT, async (req, res) => {
             const { newAnnouncement } = req.body;
             try {
@@ -233,6 +248,8 @@ async function run() {
         // ---------------------------------------------
         // Agreements Related APIs
         // ---------------------------------------------
+
+        // Get User Pending Agreement
         app.post("/api/users/agreements", verifyJWT, async (req, res) => {
             const { tenantEmail, tenant_id } = req.body;
             const result = await agreementsCollection.findOne({
@@ -253,6 +270,7 @@ async function run() {
                 message: "No agreement Found",
             });
         });
+        // Get Member Checked Agreement
         app.post("/api/member/agreements", verifyJWT, async (req, res) => {
             const { tenantEmail, tenant_id } = req.body;
             const result = await agreementsCollection.findOne({
@@ -273,6 +291,8 @@ async function run() {
                 message: "No agreement Found",
             });
         });
+
+        // Get All Pending Agreements
         app.post("/api/pending/agreements", verifyJWT, async (req, res) => {
             try {
                 const results = await agreementsCollection
@@ -285,6 +305,8 @@ async function run() {
                 res.status(500).send({ message: "Internal Server Error" });
             }
         });
+
+        // Accept a Agreement
         app.post("/api/accept/agreements", verifyJWT, async (req, res) => {
             const { tenant_id, agreement_id, agreementCheckedDate } = req.body;
 
@@ -337,6 +359,8 @@ async function run() {
                     .send({ message: "Internal Server Error" });
             }
         });
+
+        // Reject a Agreement
         app.post("/api/reject/agreements", verifyJWT, async (req, res) => {
             const { agreement_id, agreementCheckedDate } = req.body;
 
@@ -376,7 +400,8 @@ async function run() {
             }
         });
 
-        app.post("/api/agreements", verifyJWT, async (req, res) => {
+        // Create a new Agreement(For User)
+        app.post("/api/create/agreements", verifyJWT, async (req, res) => {
             const { newAgreement } = req.body;
             newAgreement["status"] = "pending";
             newAgreement["type"] = "user";
@@ -424,6 +449,8 @@ async function run() {
         // ---------------------------------------------
         // Apartments Related APIs
         // ---------------------------------------------
+
+        // Get All Apartments
         app.get("/api/apartments", async (req, res) => {
             const result = await apartmentsCollection.find({}).toArray();
 
@@ -435,6 +462,7 @@ async function run() {
             res.status(200).send({ status: 200, result });
         });
 
+        // Get Apartment by ID
         app.get("/api/apartments/:id", async (req, res) => {
             const id = req.params.id;
             if (!ObjectId.isValid(id)) {
@@ -455,6 +483,8 @@ async function run() {
         // ---------------------------------------------
         // User Related APIs
         // ---------------------------------------------
+
+        // Check if user exists
         app.get("/api/users/exists/:email", async (req, res) => {
             const email = req.params.email;
             const result = await usersCollection.findOne({ email });
@@ -463,6 +493,8 @@ async function run() {
             }
             res.status(200).send({ status: true });
         });
+
+        // Get User by Email
         app.post("/api/users/:email", verifyJWT, async (req, res) => {
             const email = req.params.email;
             const result = await usersCollection.findOne(
@@ -479,6 +511,8 @@ async function run() {
             );
             res.status(200).json(result);
         });
+
+        // Create a new User
         app.post("/api/users", async (req, res) => {
             const newUser = req.body;
             newUser["role"] = "user";
@@ -491,12 +525,15 @@ async function run() {
     }
 }
 
+// Default API
 app.get("/", (req, res) => {
     res.status(200).send({ status: 200, message: "StructoMate Default API" });
 });
 
+// Start the server
 app.listen(port, () => {
     console.log("StructoMate server running at: ", port);
 });
 
+// Connect to the MongoDB cluster
 run().catch(console.dir);
