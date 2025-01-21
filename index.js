@@ -99,7 +99,7 @@ async function run() {
                 .find({ role: "user" })
                 .toArray();
             const occuRooms = await agreementsCollection
-                .find({ status: "active" })
+                .find({ type: "member" })
                 .toArray();
             const availableRooms = (
                 ((10 - parseInt(occuRooms.length)) / 10) *
@@ -234,14 +234,37 @@ async function run() {
         // Agreements Related APIs
         // ---------------------------------------------
         app.post("/api/users/agreements", verifyJWT, async (req, res) => {
-            const { tenantEmail } = req.body;
-            const result = await agreementsCollection
-                .find({ tenantEmail })
-                .toArray();
-            if (result.length >= 1) {
+            const { tenantEmail, tenant_id } = req.body;
+            const result = await agreementsCollection.findOne({
+                tenantEmail,
+                tenant_id,
+                type: "user",
+                status: "pending",
+            });
+
+            if (result !== null) {
                 return res.status(200).send({
                     status: 200,
-                    agreementFound: result.length,
+                    result,
+                });
+            }
+            res.status(400).send({
+                status: 400,
+                message: "No agreement Found",
+            });
+        });
+        app.post("/api/member/agreements", verifyJWT, async (req, res) => {
+            const { tenantEmail, tenant_id } = req.body;
+            const result = await agreementsCollection.findOne({
+                tenantEmail,
+                tenant_id,
+                type: "member",
+                status: "checked",
+            });
+
+            if (result !== null) {
+                return res.status(200).send({
+                    status: 200,
                     result,
                 });
             }
@@ -357,11 +380,25 @@ async function run() {
             const { newAgreement } = req.body;
             newAgreement["status"] = "pending";
             newAgreement["type"] = "user";
-            const { tenantEmail, apartmentDetails } = newAgreement;
+            const { tenantEmail, tenant_id, tenantRole } = newAgreement;
+
+            if (tenantRole === "member") {
+                return res.status(401).send({
+                    status: 401,
+                    message: "You are already a member",
+                });
+            }
+            if (tenantRole === "admin") {
+                return res.status(401).send({
+                    status: 401,
+                    message: "Admin Cannot sign an agreement",
+                });
+            }
             const isExist = await agreementsCollection.findOne({
                 tenantEmail,
-                "apartmentDetails._id": apartmentDetails?._id,
-                "apartmentDetails.apartmentNo": apartmentDetails?.apartmentNo,
+                tenant_id,
+                type: "user",
+                status: "pending",
             });
 
             if (isExist === null) {
@@ -377,9 +414,10 @@ async function run() {
                     });
                 }
             } else {
-                return res
-                    .status(401)
-                    .send({ status: 401, message: "Already signed" });
+                return res.status(401).send({
+                    status: 401,
+                    message: "Already signed an Agreement",
+                });
             }
         });
 
