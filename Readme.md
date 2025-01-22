@@ -18,17 +18,86 @@ StructoMate is a comprehensive building management application designed to simpl
 ## Installation
 
 ### Prerequisites
+
 - Node.js (v14 or higher)
 - MongoDB (local or cloud instance)
 
+## API Endpoints
+
+### Authentication
+
+- **POST** `/api/login`: Login user and return a JWT.
+- **POST** `/api/logout`: Logout user.
+
+### Stripe Integration
+
+- **POST** `/api/create-payment-intent`: Create a Stripe payment intent (requires JWT).
+
+### Admin
+
+- **POST** `/api/admin`: Fetch admin dashboard data (requires JWT).
+- **POST** `/api/manageMembers`: Get all members (requires JWT).
+- **POST** `/api/change/role`: Change user role (requires JWT).
+
+### Coupons
+
+- **POST** `/api/get/coupons`: Get all coupons (requires JWT).
+- **POST** `/api/create/coupons`: Create a new coupon (requires JWT).
+- **POST** `/api/delete/coupons`: Delete a coupon (requires JWT).
+
+### Announcements
+
+- **POST** `/api/get/userAnnouncement`: Get user announcements (requires JWT).
+- **POST** `/api/get/memberAnnouncement`: Get member announcements (requires JWT).
+- **POST** `/api/makeAnnouncement`: Create a new announcement (requires JWT).
+
+### Agreements
+
+- **POST** `/api/users/agreements`: Get user's pending agreements (requires JWT).
+- **POST** `/api/member/agreements`: Get member's checked agreements (requires JWT).
+- **POST** `/api/pending/agreements`: Get all pending agreements (requires JWT).
+- **POST** `/api/accept/agreements`: Accept an agreement (requires JWT).
+- **POST** `/api/reject/agreements`: Reject an agreement (requires JWT).
+- **POST** `/api/create/agreements`: Create a new agreement (requires JWT).
+
+### Apartments
+
+- **GET** `/api/apartments`: Get all apartments.
+- **GET** `/api/apartments/:id`: Get an apartment by ID.
+
+### Users
+
+- **GET** `/api/users/exists/:email`: Check if a user exists.
+- **POST** `/api/users/:email`: Get user data by email (requires JWT).
+- **POST** `/api/users`: Create a new user.
+
+## Folder Structure
+
+```
+root
+├── public
+│   └── favicon.webp
+├── .gitignore
+├── .env
+├── index.js
+├── LICENSE
+├── package.json
+├── package-lock.json
+└── Readme.md
+└── vercel.json
+```
+
 ### Steps
+
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/Ajmain-Fayek/StructoMate-server.git
-   cd structomate
+   cd StructoMate-server
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -36,6 +105,7 @@ StructoMate is a comprehensive building management application designed to simpl
 3. Set up environment variables:
    - Create a `.env` file in the root directory.
    - Add the following variables:
+
      ```env
      PORT=5000
      MONGO_URI=<your-mongodb-connection-string>
@@ -45,6 +115,7 @@ StructoMate is a comprehensive building management application designed to simpl
      ```
 
 4. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -68,6 +139,7 @@ StructoMate is a comprehensive building management application designed to simpl
 ## Contributing
 
 We welcome contributions! Please follow these steps:
+
 1. Fork the repository.
 2. Create a feature branch: `git checkout -b feature-name`.
 3. Commit your changes: `git commit -m "Add new feature"`.
