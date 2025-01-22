@@ -6,6 +6,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const favicon = require("serve-favicon");
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const jwt = require("jsonwebtoken");
 const app = express();
 
@@ -21,9 +22,9 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-// ---------------------------------------------
-// JWT Middleware
-// ---------------------------------------------
+// -----------------------------------------------------------------------------------
+//                                     JWT Middleware                               //
+// -----------------------------------------------------------------------------------
 const verifyJWT = (req, res, next) => {
     const { token } = req.body;
 
@@ -61,9 +62,9 @@ async function run() {
         const agreementsCollection = db.collection("agreements");
         const announcementsCollection = db.collection("announcements");
 
-        // ---------------------------------------------
-        // JWT Related APIs
-        // ---------------------------------------------
+        // --------------------------------------------------------------------------
+        //                                 JWT Related APIs                        //
+        // --------------------------------------------------------------------------
         app.post("/api/login", async (req, res) => {
             // console.log("client request for login: ", req.body);
             const { email } = req.body;
@@ -88,9 +89,42 @@ async function run() {
             res.status(200).json({ message: "Logout successful" });
         });
 
-        // ---------------------------------------------
-        // Admin Data Related APIs
-        // ---------------------------------------------
+        // --------------------------------------------------------------------------
+        //                              Stripe Related APIs                        //
+        // --------------------------------------------------------------------------
+
+        app.post("/api/create-payment-intent", verifyJWT, async (req, res) => {
+            try {
+                const { rent } = req.body;
+
+                if (!rent || isNaN(rent)) {
+                    return res
+                        .status(400)
+                        .send({ error: "Invalid rent amount" });
+                }
+
+                const amount = Math.round(parseFloat(rent) * 100);
+
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount,
+                    currency: "usd",
+                    payment_method_types: ["card"],
+                });
+
+                res.status(200).send({
+                    clientSecret: paymentIntent.client_secret,
+                });
+            } catch (error) {
+                res.status(500).send({
+                    error: "Failed to create payment intent",
+                    message: error.message,
+                });
+            }
+        });
+
+        // ---------------------------------------------------------------------------
+        //                          Admin Data Related APIs                        //
+        // ---------------------------------------------------------------------------
 
         // Admin Dashboard (profile) Data
         app.post("/api/admin", verifyJWT, async (req, res) => {
@@ -144,9 +178,9 @@ async function run() {
             res.status(200).send(result);
         });
 
-        // ---------------------------------------------
-        // Coupons Related APIs
-        // ---------------------------------------------
+        // ---------------------------------------------------------------------------
+        //                           Coupons Related APIs                            //
+        // ---------------------------------------------------------------------------
 
         //  Get All Coupons
         app.post("/api/get/coupons", verifyJWT, async (req, res) => {
@@ -197,9 +231,10 @@ async function run() {
                 });
             }
         });
-        // ---------------------------------------------
-        // Announcement Related APIs
-        // ---------------------------------------------
+
+        // ---------------------------------------------------------------------------
+        //                         Announcement Related APIs                         //
+        // ---------------------------------------------------------------------------
 
         // Get User Announcements (user and all)
         app.post("/api/get/userAnnouncement", verifyJWT, async (req, res) => {
@@ -245,9 +280,9 @@ async function run() {
             }
         });
 
-        // ---------------------------------------------
-        // Agreements Related APIs
-        // ---------------------------------------------
+        // ---------------------------------------------------------------------------
+        //                          Agreements Related APIs                          //
+        // ---------------------------------------------------------------------------
 
         // Get User Pending Agreement
         app.post("/api/users/agreements", verifyJWT, async (req, res) => {
@@ -446,9 +481,19 @@ async function run() {
             }
         });
 
-        // ---------------------------------------------
-        // Apartments Related APIs
-        // ---------------------------------------------
+        // ---------------------------------------------------------------------------
+        //                    Payments/Transaction Related APIs                     //
+        // ---------------------------------------------------------------------------
+
+        app.post("/api/save/transaction", verifyJWT, async (req, res) => {
+            const { transaction } = req.body;
+            const result = await transactionsCollection.insertOne(transaction);
+            res.status(201).send(result);
+        });
+
+        // ---------------------------------------------------------------------------
+        //                          Apartments Related APIs                         //
+        // ---------------------------------------------------------------------------
 
         // Get All Apartments
         app.get("/api/apartments", async (req, res) => {
@@ -480,9 +525,9 @@ async function run() {
             res.status(200).send({ status: 200, result });
         });
 
-        // ---------------------------------------------
-        // User Related APIs
-        // ---------------------------------------------
+        // ---------------------------------------------------------------------------
+        //                            User Related APIs                              //
+        // ---------------------------------------------------------------------------
 
         // Check if user exists
         app.get("/api/users/exists/:email", async (req, res) => {
