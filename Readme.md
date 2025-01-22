@@ -2,6 +2,8 @@
 
 StructoMate is a comprehensive building management application designed to simplify managing tenants, agreements, announcements, payments, and more in a single-building environment.
 
+---
+
 ## Features
 
 - **User Management**: Add, update, and manage users and their roles (admin, member, user).
@@ -11,16 +13,13 @@ StructoMate is a comprehensive building management application designed to simpl
 - **Announcements**: Post and retrieve announcements for users, members, or both.
 - **Apartments**: View available apartments and their details.
 
+---
+
 ## Client Side
 
 - [Live Demo](https://structomate.web.app/)
 
-## Installation
-
-### Prerequisites
-
-- Node.js (v14 or higher)
-- MongoDB (local or cloud instance)
+---
 
 ## API Endpoints
 
@@ -71,6 +70,8 @@ StructoMate is a comprehensive building management application designed to simpl
 - **POST** `/api/users/:email`: Get user data by email (requires JWT).
 - **POST** `/api/users`: Create a new user.
 
+---
+
 ## Folder Structure
 
 ```
@@ -86,6 +87,15 @@ root
 └── Readme.md
 └── vercel.json
 ```
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- MongoDB (local or cloud instance)
 
 ### Steps
 
@@ -122,11 +132,15 @@ root
 
 5. Open the app in your browser at `http://localhost:<port>`.
 
+---
+
 ## Usage
 
 - Admins can manage users, agreements, and announcements.
 - Members can view and accept agreements, make payments, and view announcements.
 - The app provides a dashboard for easy navigation and management.
+
+---
 
 ## Tech Stack
 
@@ -135,6 +149,8 @@ root
 - **Database**: MongoDB
 - **Authentication**: JWT (JSON Web Tokens)
 - **Payment Integration**: Stripe
+
+---
 
 ## Contributing
 
@@ -145,6 +161,8 @@ We welcome contributions! Please follow these steps:
 3. Commit your changes: `git commit -m "Add new feature"`.
 4. Push to the branch: `git push origin feature-name`.
 5. Open a pull request.
+
+---
 
 ## License
 
