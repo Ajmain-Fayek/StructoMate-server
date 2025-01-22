@@ -491,6 +491,15 @@ async function run() {
             res.status(201).send(result);
         });
 
+        app.post("/api/get/transactions", verifyJWT, async (req, res) => {
+            const { email, userId } = req.body;
+            const result = await transactionsCollection
+                .find({ email, userId })
+                .sort({ date: -1 })
+                .toArray();
+            res.status(200).send(result);
+        });
+
         // ---------------------------------------------------------------------------
         //                          Apartments Related APIs                         //
         // ---------------------------------------------------------------------------
